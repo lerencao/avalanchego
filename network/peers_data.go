@@ -6,6 +6,7 @@ package network
 import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/sampler"
+	"sort"
 )
 
 // peersData encapsulate all peers known to Network.
@@ -108,4 +109,42 @@ func (p *peersData) sample(subnetID ids.ID, validatorOnly bool, n int) ([]*peer,
 		peers = append(peers, peer)
 	}
 	return peers, nil
+}
+
+func (p *peersData) sampleWithValidatorWeight(subnetID ids.ID, validatorOnly bool, n int) ([]*peer, error) {
+	if !validatorOnly {
+		return p.sample(subnetID, validatorOnly, n)
+	}
+
+	numPeers := p.size()
+
+	peers := make([]*peer, 0, numPeers) // peers we'll gossip to
+
+	for _, peer := range p.peersList {
+		if !peer.finishedHandshake.GetValue() || !peer.trackedSubnets.Contains(subnetID) || (validatorOnly && !peer.net.config.Validators.Contains(subnetID, peer.nodeID)) {
+			continue
+		}
+		peers = append(peers, peer)
+
+	}
+	if len(peers) == 0 {
+		return peers, nil
+	}
+
+	vlSet, exists := peers[0].net.config.Validators.GetValidators(subnetID)
+	if !exists {
+		return p.sample(subnetID, validatorOnly, n)
+	}
+
+	sort.Slice(peers, func(i, j int) bool {
+		wi, _ := vlSet.GetWeight(peers[i].nodeID)
+		wj, _ := vlSet.GetWeight(peers[j].nodeID)
+		return wj > wi
+	})
+
+	if len(peers) < n {
+		return peers, nil
+	} else {
+		return peers[0:n], nil
+	}
 }
