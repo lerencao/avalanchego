@@ -48,3 +48,6 @@ require (
 	google.golang.org/protobuf v1.27.1
 	gotest.tools v2.2.0+incompatible
 )
+
+// replace github.com/ava-labs/coreth v0.8.4-rc.3 => ../coreth
+replace github.com/ava-labs/coreth v0.8.4-rc.3 => github.com/lerencao/coreth v0.8.4-patch.1
