@@ -50,4 +50,4 @@ require (
 )
 
 // replace github.com/ava-labs/coreth v0.8.4-rc.3 => ../coreth
-replace github.com/ava-labs/coreth v0.8.4-rc.3 => github.com/lerencao/coreth v0.8.4-patch.1
+replace github.com/ava-labs/coreth v0.8.4-rc.3 => github.com/lerencao/coreth v0.8.4-patch.1.0.20220126051407-75b56f8a5e78
